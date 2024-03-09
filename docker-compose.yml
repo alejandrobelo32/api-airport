@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  db-airport:
+    image: "db-airport"
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=tp_cc_flights
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-ppass" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+        - "8080:8080"
+        - "5005:5005"
+    depends_on:
+      db-airport:
+        condition: service_healthy
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
